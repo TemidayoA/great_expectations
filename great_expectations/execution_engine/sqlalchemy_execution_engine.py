@@ -1188,21 +1188,19 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
             else:
                 alias = metric_to_resolve.metric_name
-                
+
                 # Prevent "Duplicated field name in view schema" SQL errors by deduplicating aliases
                 existing_aliases = {
                     col.name for col in domain_batches[domain_id]["select"] if hasattr(col, "name")
                 }
-                
+
                 if alias in existing_aliases:
                     suffix = 1
                     while f"{alias}_{suffix}" in existing_aliases:
                         suffix += 1
                     alias = f"{alias}_{suffix}"
 
-                domain_batches[domain_id]["select"].append(
-                    metric_fn.label(alias)
-                )
+                domain_batches[domain_id]["select"].append(metric_fn.label(alias))
                 domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
 
         for domain_id in list(domain_batches.keys()):
