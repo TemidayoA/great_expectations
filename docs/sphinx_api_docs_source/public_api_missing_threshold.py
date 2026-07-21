@@ -74,9 +74,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         file=pathlib.Path("great_expectations/core/factory/factory.py"), name="all"
     ),
     PrintableDefinition(
-        file=pathlib.Path("great_expectations/core/factory/factory.py"), name="delete"
-    ),
-    PrintableDefinition(
         file=pathlib.Path("great_expectations/core/factory/factory.py"), name="get"
     ),
     PrintableDefinition(
@@ -649,18 +646,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path(
-            "great_expectations/expectations/regex_based_column_map_expectation.py"
-        ),
-        name="validate_configuration",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/expectations/set_based_column_map_expectation.py"
-        ),
-        name="validate_configuration",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
             "great_expectations/experimental/metric_repository/metric_retriever.py"
         ),
         name="get_validator",
@@ -753,23 +738,5 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/validator/validator.py"), name="validate"
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/core/partitioners.py"),
-        name="ColumnPartitionerDaily",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/core/partitioners.py"),
-        name="FileNamePartitionerDaily",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/data_context/data_context/abstract_data_context.py"
-        ),
-        name="update_datasource",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/datasource/fluent/sources.py"),
-        name="update_datasource",
     ),
 ]
