@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlalchemy.types as sqltypes
+
 import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations.data_context import get_context
@@ -74,3 +75,4 @@ def test_postgres_multiple_null_expectations_alias_deduplication():
 
         # 6. Assert successful execution without alias collision
         assert len(result.results) == 3
+
