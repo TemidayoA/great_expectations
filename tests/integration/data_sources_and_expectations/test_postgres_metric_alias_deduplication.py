@@ -47,9 +47,7 @@ def test_postgres_multiple_null_expectations_alias_deduplication():
 
     with batch_setup.batch_test_context() as batch:
         # 3. Construct Expectation Suite
-        suite = context.suites.add(
-            gx.ExpectationSuite(name="alias_deduplication_suite")
-        )
+        suite = context.suites.add(gx.ExpectationSuite(name="alias_deduplication_suite"))
 
         # 4. Add multiple identical expectations on different columns
         suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="field1"))
@@ -75,4 +73,3 @@ def test_postgres_multiple_null_expectations_alias_deduplication():
 
         # 6. Assert successful execution without alias collision
         assert len(result.results) == 3
-
