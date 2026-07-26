@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 import sqlalchemy.types as sqltypes
 
 import great_expectations as gx
@@ -8,6 +9,8 @@ from tests.integration.test_utils.data_source_config.postgres import (
     PostgresBatchTestSetup,
     PostgreSQLDatasourceTestConfig,
 )
+
+pytestmark = pytest.mark.postgresql
 
 
 def test_postgres_multiple_null_expectations_alias_deduplication():
