@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine.execution_engine import (
     MetricComputationConfiguration,
@@ -8,6 +10,8 @@ from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
+
+pytestmark = pytest.mark.unit
 
 
 def _make_bundle_entry(column: str) -> MetricComputationConfiguration:
