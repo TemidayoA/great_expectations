@@ -191,7 +191,18 @@ Two exception shapes are common enough to call out by name:
   during `add_or_update_*`, or an import error for an optional driver
   dependency) already carry an actionable message from Great Expectations
   itself — relay it close to verbatim, plus one next step (fix the connection
-  string, install the missing driver package, check the credential).
+  string, install the backend's optional dependency group, check the
+  credential). Where that message names a bare package to install — the
+  missing-driver errors say things like `pip install sqlalchemy` — hand over
+  the matching dependency group instead, so what arrives stays matched to the
+  installed Great Expectations: `pip install 'great_expectations[postgresql]'`.
+  Read the group names off the installed distribution rather than recalling
+  them, with
+  `importlib.metadata.metadata("great_expectations").get_all("Provides-Extra")`.
+<!-- consent-gate: install -->
+- **Installing the dependency is a separate act.** Hand the command named
+  above to the user; running it starts only from their own instruction, not
+  from this step.
 - **A missing credential.** If a data operation fails because a referenced
   `${ENV_VAR}` isn't set, say exactly which variable is missing and how to
   provide it (set the environment variable, or add it to the project's

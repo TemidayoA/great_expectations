@@ -784,6 +784,29 @@
                 "Redshift"
             ]
         },
+        "expect_column_values_to_not_be_outliers": {
+            "data_quality_issues": [
+                "Numeric"
+            ],
+            "schema_file": "ExpectColumnValuesToNotBeOutliers.json",
+            "short_description": "Expect numeric column values to not be statistical outliers.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
         "expect_column_values_to_not_match_like_pattern": {
             "data_quality_issues": [
                 "Validity"
@@ -893,6 +916,29 @@
             ],
             "schema_file": "ExpectMulticolumnSumToEqual.json",
             "short_description": "Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.",
+            "supported_data_sources": [
+                "Pandas",
+                "Spark",
+                "SQLite",
+                "PostgreSQL",
+                "Amazon Aurora PostgreSQL",
+                "Citus",
+                "AlloyDB",
+                "Neon",
+                "MySQL",
+                "SQL Server",
+                "BigQuery",
+                "Snowflake",
+                "Databricks (SQL)",
+                "Redshift"
+            ]
+        },
+        "expect_multicolumn_values_to_be_equal": {
+            "data_quality_issues": [
+                "Validity"
+            ],
+            "schema_file": "ExpectMulticolumnValuesToBeEqual.json",
+            "short_description": "Expect the values in each row of the specified columns to be equal.",
             "supported_data_sources": [
                 "Pandas",
                 "Spark",

@@ -38,6 +38,20 @@ present afterwards.
 Do not skip step 1, and do not stop before step 4. A configuration that was
 never read through is not a result worth reporting.
 
+## What this skill will not do without being asked
+
+<!-- consent-gate: install -->
+- **Install, upgrade, or remove a package, or otherwise modify the
+  interpreter, virtual environment, environment variables, or shell state.**
+  Not in response to an error, not preemptively while checking whether
+  something is present, and not by announcing an intention to install with a
+  chance to decline attached — none of those is the user asking. When
+  something is missing, name it and hand over the command; running it is a
+  separate act that starts only from the user's own instruction, later.
+<!-- consent-gate: project -->
+- **Create a project directory on the user's disk.** Only after the user has
+  agreed to write the session out and named where.
+
 ## Step 1 — Preflight
 
 Follow `references/preflight.md` in full before configuring anything. It
@@ -47,6 +61,11 @@ problems that silently masquerade as "no project found".
 
 The outcome you carry forward is a `context` object and one fact: whether the
 session is file-backed or in memory. Both are fully supported paths.
+
+If anything here, or in step 3 below, turns up a missing driver or client
+library, report it and hand over the install command per the standing rule
+above. Do not install it yourself — not now, before anything has failed, and
+not later without the user's own go-ahead.
 
 ## Step 2 — Elicit what you need
 
@@ -68,9 +87,18 @@ on the type; the catalog reference enumerates them.
 
 **4. The batching cadence.** Whole collection, or sliced by day, month, or
 year. Ask what the natural unit of the user's data is — if they check data
-daily, a daily batch definition matches how they work. If the data has no
-usable date column, the whole collection is the right answer and there is
-nothing to apologize for.
+daily, a daily batch definition matches how they work.
+
+**A user who expresses no preference has not chosen the whole collection.**
+Don't let silence settle it. Carry the question forward to step 4 instead,
+where the probe's own output tells you whether the data can carry a time slice
+at all, and an open question becomes a recommendation: "`ordered_at` looks
+like your time column — monthly?" is something a user can answer, where "how
+would you like to batch this?" mostly is not.
+
+If nothing in the data can carry a time slice, the whole collection is the
+right answer and there is nothing to apologize for — say that you looked and
+found nothing, so the user hears a finding rather than a default.
 
 ### Secrets: templates only, never values
 
@@ -161,6 +189,10 @@ So:
 Note also that the factory **tests the connection as part of the call**, so it
 can be slow or hang on an unreachable host. Run it inside the duration-tracked
 wrapper in `references/robustness.md` like any other data-touching call.
+
+That connection test is exactly where a missing driver or client library
+surfaces. Report it and hand over the install command — do not install it
+yourself to get the connection working, and do not offer to.
 
 ### The pattern
 
@@ -271,6 +303,15 @@ Four outcomes, and three of them are not failures:
   recover the real database error behind it. Do not report success, and do not
   retry with different parameters hoping something sticks.
 
+**If the cadence is still open from step 2, close it here.** The probe's frame
+is the survey you needed: `head.data.dtypes` names every column and its type,
+so a date or timestamp among them is the recommendation to bring back. A
+whole-collection definition standing where a time column exists should be
+something the user chose, not something they were never offered — say what you
+found, say what it would slice by, and let them decide. Switching is the
+`replace_batch_definition` path in step 3, which leaves the asset and every
+other batch definition on it untouched.
+
 ## Step 5 — Report, and offer write-out when in memory
 
 Tell the user, concretely:
@@ -286,10 +327,19 @@ Tell the user, concretely:
 - How to retrieve a batch again, including the `batch_parameters` the batch
   definition needs.
 
+<!-- consent-gate: project -->
 **If the session is in memory, offer to write it out** to a real project so
 the work survives — see `references/write-out.md` for the procedure and for
 what the user needs to know about dataframe assets, which carry configuration
 but no data. Offer it; don't do it unprompted, and don't pick the location.
+
+**The offer ends this flow.** Write-out creates a project on the user's disk,
+so it starts only from their reply — a separate run, after they have agreed
+and named a directory. Reporting the result and then writing it out in the
+same breath means they were never asked; putting the write-out call in the
+same program as the configure and verify calls means the same thing, because
+there was no point in it where an answer could have arrived.
+`references/write-out.md` opens with the gate this depends on.
 
 ## Where this flow ends
 
@@ -307,11 +357,16 @@ flow, report it, and then move on.
 ## Worked examples
 
 Each of these shows the object chain — data source, asset, batch definition,
-verified batch — for a **fresh** setup where none of these names exist yet.
-Preflight comes first in all three, and step 3's fetch-first pattern still
-applies: the moment there is any chance the project already holds a data
-source by that name, wrap these calls in it rather than copying them as they
-stand, or the data-source call will drop assets that are already there.
+verified batch. Preflight comes first in all three.
+
+All three carry step 3's fetch-first guard on the data-source call, because
+these are the blocks that get copied. A bare `add_or_update_<type>` sitting in
+an example reads as the shape to follow, and followed against a name that
+already exists it silently drops every asset on that data source — the caveat
+in the prose above it does not survive the copy. The asset and
+batch-definition calls are left bare to keep the per-backend differences
+legible: those raise on a name that already exists rather than destroying
+anything, and step 3 carries the reuse pattern for them.
 
 Take the factory names and arguments for the user's actual backend from
 `references/datasource-catalog.md`.
@@ -319,37 +374,43 @@ Take the factory names and arguments for the user's actual backend from
 ### A file-based source: monthly CSV files
 
 The date lives in the file name, so the monthly batch definition takes a
-`regex` with named groups. **Batch parameters for file-based definitions must
-be strings** — passing `2024` instead of `"2024"` raises
-`InvalidBatchRequestError`.
+`regex` with named groups. **Batch parameters are integers**, and they are not
+padded to match the file name: `{"month": 2}` selects `sales_2024-02.csv`, even
+though the regex reads that group as two zero-padded digits.
 
 ```python
-datasource = context.data_sources.add_or_update_pandas_filesystem(
-    name="sales_files",
-    base_directory="/data/sales",
-)
+try:
+    datasource = context.data_sources.get("sales_files")
+except LookupError:
+    datasource = context.data_sources.add_or_update_pandas_filesystem(
+        name="sales_files",
+        base_directory="/data/sales",
+    )
 asset = datasource.add_csv_asset(name="monthly_sales")
 batch_definition = asset.add_batch_definition_monthly(
     name="by_month",
     regex=r"sales_(?P<year>\d{4})-(?P<month>\d{2})\.csv",
 )
 
-batch = batch_definition.get_batch(batch_parameters={"year": "2024", "month": "02"})
+batch = batch_definition.get_batch(batch_parameters={"year": 2024, "month": 2})
 print(batch.head(n_rows=5))
 ```
 
 ### A SQL source: a table partitioned by month
 
 The date lives in a column, so the monthly batch definition takes `column`.
-**Batch parameters here are integers**, unlike the file-based case above. The
-credential-bearing part of the connection string is a `${VARIABLE_NAME}`
-reference, never a literal.
+Batch parameters are integers here too — the two families take the same window,
+so one set of parameters drives both. The credential-bearing part of the
+connection string is a `${VARIABLE_NAME}` reference, never a literal.
 
 ```python
-datasource = context.data_sources.add_or_update_postgres(
-    name="warehouse",
-    connection_string="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@warehouse.internal:5432/analytics",
-)
+try:
+    datasource = context.data_sources.get("warehouse")
+except LookupError:
+    datasource = context.data_sources.add_or_update_postgres(
+        name="warehouse",
+        connection_string="postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@warehouse.internal:5432/analytics",
+    )
 asset = datasource.add_table_asset(name="orders", table_name="orders")
 batch_definition = asset.add_batch_definition_monthly(name="by_month", column="ordered_at")
 
@@ -369,7 +430,10 @@ A dataframe asset stores configuration only — the data itself is handed over
 at retrieval time, every time, in this session and in every future one:
 
 ```python executable
-datasource = context.data_sources.add_or_update_pandas(name="in_memory")
+try:
+    datasource = context.data_sources.get("in_memory")
+except LookupError:
+    datasource = context.data_sources.add_or_update_pandas(name="in_memory")
 asset = datasource.add_dataframe_asset(name="customers")
 batch_definition = asset.add_batch_definition_whole_dataframe(name="all_rows")
 
