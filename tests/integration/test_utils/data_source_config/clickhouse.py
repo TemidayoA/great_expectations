@@ -10,15 +10,18 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.backend_spec import (
-    BackendProvisioning,
-    BackendTier,
-    CiLaneRef,
     SqlBackendSpec,
     TableSchemaItemFactory,
     TransactionMode,
 )
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup
-from tests.integration.test_utils.data_source_config.registry import register_sql_backend
+from tests.integration.test_utils.data_source_config.data_source_spec import (
+    CiLaneRef,
+    DataSourceProvisioning,
+    ExecutionEngineKind,
+    SupportTier,
+)
+from tests.integration.test_utils.data_source_config.registry import register_sql_config
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.integration.test_utils.data_source_config.sql_config import SqlDatasourceTestConfig
 
@@ -75,12 +78,15 @@ _COLUMN_TYPE_OVERRIDES = (
 )
 
 
-@register_sql_backend
+@register_sql_config
 class ClickHouseDatasourceTestConfig(SqlDatasourceTestConfig):
-    BACKEND_SPEC = SqlBackendSpec(
+    DATA_SOURCE_SPEC = SqlBackendSpec(
         label="clickhouse",
+        public_name="ClickHouse",
         marker="clickhouse",
-        provisioning=BackendProvisioning.LOCAL_CONTAINER,
+        provisioning=DataSourceProvisioning.LOCAL_CONTAINER,
+        execution_engine=ExecutionEngineKind.SQL,
+        fluent_types=frozenset({"sql"}),
         ci_lane=CiLaneRef(workflow_job="marker-tests", marker_token="clickhouse"),
         # ClickHouse has no `CREATE SCHEMA`; the database is carried in the connection string,
         # as MySQL's is.
@@ -93,7 +99,7 @@ class ClickHouseDatasourceTestConfig(SqlDatasourceTestConfig):
         dev_requirements_file="reqs/requirements-dev-clickhouse.txt",
         task_runner_marker="clickhouse",
         container_service="clickhouse",
-        tiers=frozenset({BackendTier.CURATED_SQL}),
+        tiers=frozenset({SupportTier.CURATED_SQL}),
         tier_case_exclusions={
             # Same root cause already recorded on this backend's scoped module's
             # `test_match_regex`/`test_not_match_regex`: the dialect's regex-matching path calls
