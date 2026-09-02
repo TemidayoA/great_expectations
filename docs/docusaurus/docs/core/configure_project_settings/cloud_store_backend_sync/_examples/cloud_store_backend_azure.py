@@ -39,6 +39,7 @@ def set_up_context_for_example(context):
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/core/configure_project_settings/cloud_store_backend_sync/_examples/cloud_store_backend_azure.py - full code example">
 import great_expectations as gx
+from great_expectations.core.run_identifier import RunIdentifier
 
 context = gx.get_context(mode="file")
 # Hide this
@@ -54,7 +55,7 @@ SUITE_NAME = "my_expectation_suite"
 # <snippet name="docs/docusaurus/docs/core/configure_project_settings/cloud_store_backend_sync/_examples/cloud_store_backend_azure.py - run validation locally">
 validation_definition = context.validation_definitions.get("my_validation_definition")
 run_name = f"{SUITE_NAME}_{uuid.uuid4().hex[:8]}"
-result = validation_definition.run(run_name=run_name)
+result = validation_definition.run(run_id=RunIdentifier(run_name=run_name))
 # </snippet>
 
 print(f"Validation {'succeeded' if result.success else 'failed'}")
